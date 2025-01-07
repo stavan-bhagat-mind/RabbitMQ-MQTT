@@ -1,0 +1,20 @@
+{
+  "name": "rabbitmq-mqtt",
+  "version": "1.0.0",
+  "main": "index.js",
+  "description": "Tutorial for the nodejs RabbitMQ stream client",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "send": "node send.js",
+    "receive": "node receive.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mqtt": "^5.10.3",
+    "rabbitmq-stream-js-client": "^0.4.2"
+  }
+}
