@@ -4,15 +4,15 @@ const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class Message extends Model {
     static associate(models) {
-      Message.belongsTo(models.User, {
-        as: "sender",
-        foreignKey: "senderId",
-      });
+      // Message.belongsTo(models.User, {
+      //   as: "sender",
+      //   foreignKey: "senderId",
+      // });
 
-      Message.belongsTo(models.User, {
-        as: "receiver",
-        foreignKey: "receiverId",
-      });
+      // Message.belongsTo(models.User, {
+      //   as: "receiver",
+      //   foreignKey: "receiverId",
+      // });
 
       //   Message.belongsTo(models.Group, {
       //     foreignKey: "groupId",
