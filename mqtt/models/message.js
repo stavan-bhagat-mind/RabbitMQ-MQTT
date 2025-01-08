@@ -4,15 +4,15 @@ const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class Message extends Model {
     static associate(models) {
-      // Message.belongsTo(models.User, {
-      //   as: "sender",
-      //   foreignKey: "senderId",
-      // });
+      Message.belongsTo(models.User, {
+        as: "sender",
+        foreignKey: "senderId",
+      });
 
-      // Message.belongsTo(models.User, {
-      //   as: "receiver",
-      //   foreignKey: "receiverId",
-      // });
+      Message.belongsTo(models.User, {
+        as: "receiver",
+        foreignKey: "receiverId",
+      });
 
       //   Message.belongsTo(models.Group, {
       //     foreignKey: "groupId",
@@ -48,14 +48,14 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.UUID,
         allowNull: true,
       },
-      groupId: {
-        type: DataTypes.UUID,
-        allowNull: true,
-      },
+      // groupId: {
+      //   type: DataTypes.UUID,
+      //   allowNull: true,
+      // },
     },
     {
       sequelize,
-      underscored: true,
+      // underscored: true,
       timestamps: true,
       paranoid: true,
       deletedAt: "deleted_at",

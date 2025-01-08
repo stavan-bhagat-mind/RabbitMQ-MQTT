@@ -48,13 +48,13 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       sequelize,
-      underscored: true,
+      // underscored: true,
       timestamps: true,
       paranoid: true,
       deletedAt: "deleted_at",
       createdAt: "created_at",
       updatedAt: "updated_at",
-      modelName: "User ",
+      modelName: "User",
       tableName: "users",
       indexes: [
         {
