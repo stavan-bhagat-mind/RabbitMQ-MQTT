@@ -43,6 +43,19 @@ async function getPrivateMessages(req, res) {
       order: [["created_at", "ASC"]],
     });
 
+    // Mark unread messages as read
+    const unreadMessages = messages.filter(
+      (msg) => msg.receiverId === currentUserId && msg.status !== "read"
+    );
+
+    for (const msg of unreadMessages) {
+       // Publish message read via MQTT
+      mqttService.publish("chat/read", {
+        messageId: msg.id,
+        readerId: currentUserId,
+      });
+    }
+
     res.json({
       success: true,
       messages,
@@ -60,7 +73,6 @@ function markMessageAsRead(req, res) {
     const { messageId } = req.params;
     const readerId = req.userId;
 
-    // Publish read status via MQTT
     mqttService.publish("chat/read", {
       messageId,
       readerId,

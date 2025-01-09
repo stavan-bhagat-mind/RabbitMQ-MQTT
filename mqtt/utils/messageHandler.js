@@ -24,6 +24,9 @@ async function handleIncomingMessage(payload) {
       ...payload,
       timestamp: new Date(),
     });
+    
+    // Update message status
+    await message.update({ status: "delivered" });
 
     // Confirm message delivery to sender
     mqttService.publish(`chat/delivery/${payload.senderId}`, {
