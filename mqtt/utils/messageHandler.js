@@ -24,7 +24,7 @@ async function handleIncomingMessage(payload) {
       ...payload,
       timestamp: new Date(),
     });
-    
+
     // Update message status
     await message.update({ status: "delivered" });
 

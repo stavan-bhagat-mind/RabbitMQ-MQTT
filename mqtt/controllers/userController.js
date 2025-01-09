@@ -93,10 +93,13 @@ async function login(req, res) {
       });
     }
 
+    const clientId = `chat-client-${user.id}-${Date.now()}`;
+
     // Update user status
     await user.update({
       isOnline: true,
       lastLogin: new Date(),
+      clientId: clientId,
     });
 
     // Generate token
@@ -114,6 +117,7 @@ async function login(req, res) {
       userId: user.id,
       username: user.username,
       timestamp: new Date(),
+      clientId: clientId,
     });
 
     res.json({
