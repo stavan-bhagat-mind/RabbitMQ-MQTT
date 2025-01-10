@@ -14,9 +14,9 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "receiverId",
       });
 
-      //   Message.belongsTo(models.Group, {
-      //     foreignKey: "groupId",
-      //   });
+        Message.belongsTo(models.Group, {
+          foreignKey: "groupId",
+        });
     }
   }
 
@@ -48,10 +48,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.UUID,
         allowNull: true,
       },
-      // groupId: {
-      //   type: DataTypes.UUID,
-      //   allowNull: true,
-      // },
+      groupId: {
+        type: DataTypes.UUID,
+        allowNull: true,
+      },
     },
     {
       sequelize,

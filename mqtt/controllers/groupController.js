@@ -1,32 +1,21 @@
-const { raw } = require("express");
 const { Models } = require("../models");
-const { Op } = require("sequelize");
+const mqttService = require("../utils/mqttService");
 
 async function createGroup(req, res) {
   try {
     const { name, isPrivate } = req.body;
     const creatorId = req.userId;
 
-    const group = await Models.Group.create({
+    // Publish the group creation event via MQTT
+    mqttService.publish("group/create", {
       name,
       creatorId,
       isPrivate,
     });
 
-    await Models.GroupMember.create({
-      groupId: group.id,
-      userId: creatorId,
-      role: "admin",
-    });
-
     res.status(201).json({
       success: true,
-      group: {
-        id: group.id,
-        name: group.name,
-        creatorId,
-        isPrivate,
-      },
+      message: "Group queued for creation",
     });
   } catch (error) {
     res.status(500).json({

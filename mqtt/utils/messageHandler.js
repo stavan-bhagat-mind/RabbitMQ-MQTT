@@ -5,6 +5,9 @@ function initializeMessageHandlers() {
   // Subscribe to private message topic
   mqttService.subscribe("chat/message", handleIncomingMessage);
   mqttService.subscribe("chat/read", handleMessageRead);
+  mqttService.subscribe("chat/group/message", handleGroupMessage);
+  mqttService.subscribe("chat/group/read", handleGroupMessageRead);
+  mqttService.subscribe("group/create", handleGroupCreation);
 }
 
 async function handleIncomingMessage(payload) {
@@ -59,150 +62,98 @@ async function handleMessageRead(payload) {
   }
 }
 
+async function handleGroupMessage(payload) {
+  try {
+    const members = await Models.GroupMember.findAll({
+      where: { groupId: payload.groupId },
+    });
+
+    const message = await Models.Message.create({
+      senderId: payload.senderId,
+      groupId: payload.groupId,
+      content: payload.content,
+      type: "group",
+      readBy: [payload.senderId],
+      status: "sent",
+    });
+
+    members.forEach((member) => {
+      if (member.userId !== payload.senderId) {
+        mqttService.publish(`chat/group/${member.userId}`, {
+          messageId: message.id,
+          groupId: payload.groupId,
+          senderId: payload.senderId,
+          content: payload.content,
+          timestamp: payload.timestamp,
+        });
+      }
+    });
+
+    await message.update({ status: "delivered" });
+
+    mqttService.publish(`chat/delivery/${payload.senderId}`, {
+      messageId: message.id,
+      status: "delivered",
+    });
+  } catch (error) {
+    console.error("Group message handling error:", error);
+  }
+}
+
+async function handleGroupMessageRead(payload) {
+  try {
+    const message = await Models.Message.findByPk(payload.messageId);
+
+    if (message) {
+      const readBy = message.readBy || [];
+      if (!readBy.includes(payload.readerId)) {
+        message.readBy = [...readBy, payload.readerId];
+        await message.save();
+      }
+
+      mqttService.publish(`chat/group/${payload.groupId}/read`, {
+        messageId: payload.messageId,
+        readerId: payload.readerId,
+        timestamp: new Date(),
+      });
+    }
+  } catch (error) {
+    console.error("Group message read handling error:", error);
+  }
+}
+
+async function handleGroupCreation(payload) {
+  try {
+    const group = await Models.Group.create({
+      name: payload.name,
+      creatorId: payload.creatorId,
+      isPrivate: payload.isPrivate,
+    });
+
+    await Models.GroupMember.create({
+      groupId: group.id,
+      userId: payload.creatorId,
+      role: "admin",
+    });
+    mqttService.publish("group/create/response", {
+      success: true,
+      groupId: group.id,
+    });
+  } catch (error) {
+    mqttService.publish("group/create/response", {
+      success: false,
+      error: error.message,
+    });
+  }
+}
+
 // Initialize handlers when module is imported
 initializeMessageHandlers();
 
 module.exports = {
   handleIncomingMessage,
   handleMessageRead,
+  handleGroupMessage,
+  handleGroupCreation,
+  handleGroupMessageRead,
 };
-
-// ?--------------????
-// const mqtt = require("mqtt");
-// const {Models} = require("../models");
-
-// const createMqttHandler = () => {
-//   const client = mqtt.connect(process.env.MQTT_BROKER_URL, {
-//     clientId: `chat-server-${Math.random().toString(16).substr(2, 8)}`,
-//   });
-
-//   const handleUserRegistration = async (payload) => {
-//     try {
-//       const user = await Models.User.create({
-//         username: payload.username,
-//         email: payload.email,
-//         password: payload.password,
-//         clientId: payload.clientId,
-//         isOnline: true,
-//       });
-
-//       client.publish(
-//         "user/register/response",
-//         JSON.stringify({
-//           success: true,
-//           userId: user.id,
-//         })
-//       );
-//     } catch (error) {
-//       client.publish(
-//         "user/register/response",
-//         JSON.stringify({
-//           success: false,
-//           error: error.message,
-//         })
-//       );
-//     }
-//   };
-
-//   const handlePrivateMessage = async (payload) => {
-//     try {
-//       const message = await Models.Message.create({
-//         senderId: payload.senderId,
-//         receiverId: payload.receiverId,
-//         content: payload.content,
-//         type: "private",
-//       });
-
-//       client.publish(
-//         `message/private/${payload.receiverId}`,
-//         JSON.stringify({
-//           messageId: message.id,
-//           senderId: payload.senderId,
-//           content: payload.content,
-//         })
-//       );
-//     } catch (error) {
-//       console.error("Error sending private message:", error);
-//     }
-//   };
-
-//   //   const handleGroupMessage = async (payload) => {
-//   //     try {
-//   //       const message = await Message.create({
-//   //         senderId: payload.senderId,
-//   //         groupId: payload.groupId,
-//   //         content: payload.content,
-//   //         type: "group",
-//   //       });
-
-//   //       client.publish(
-//   //         `message/group/${payload.groupId}`,
-//   //         JSON.stringify({
-//   //           messageId: message.id,
-//   //           senderId: payload.senderId,
-//   //           content: payload.content,
-//   //         })
-//   //       );
-//   //     } catch (error) {
-//   //       console.error("Error sending group message:", error);
-//   //     }
-//   //   };
-
-//   //   const handleGroupCreation = async (payload) => {
-//   //     try {
-//   //       const group = await Group.create({
-//   //         name: payload.name,
-//   //         creatorId: payload.creatorId,
-//   //         isPrivate: payload.isPrivate,
-//   //       });
-
-//   //       client.publish(
-//   //         "group/create/response",
-//   //         JSON.stringify({
-//   //           success: true,
-//   //           groupId: group.id,
-//   //         })
-//   //       );
-//   //     } catch (error) {
-//   //       client.publish(
-//   //         "group/create/response",
-//   //         JSON.stringify({
-//   //           success: false,
-//   //           error: error.message,
-//   //         })
-//   //       );
-//   //     }
-//   //   };
-
-//   client.on("connect", () => {
-//     console.log("Connected to MQTT broker");
-//     client.subscribe([
-//       "user/register",
-//       "message/private",
-//       "message/group",
-//       "group/create",
-//     ]);
-//   });
-
-//   client.on("message", (topic, message) => {
-//     const payload = JSON.parse(message.toString());
-//     switch (topic) {
-//       case "user/register":
-//         handleUserRegistration(payload);
-//         break;
-//       case "message/private":
-//         handlePrivateMessage(payload);
-//         break;
-//       case "message/group":
-//         handleGroupMessage(payload);
-//         break;
-//       case "group/create":
-//         handleGroupCreation(payload);
-//         break;
-//       default:
-//         console.log("Unknown topic:", topic);
-//     }
-//   });
-// };
-
-// module.exports = createMqttHandler;

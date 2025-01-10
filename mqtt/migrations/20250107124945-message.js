@@ -37,14 +37,14 @@ module.exports = {
           key: "id",
         },
       },
-      // groupId: {
-      //   type: Sequelize.UUID,
-      //   allowNull: true,
-      //   references: {
-      //     model: "groups",
-      //     key: "id",
-      //   },
-      // },
+      groupId: {
+        type: Sequelize.UUID,
+        allowNull: true,
+        references: {
+          model: "groups",
+          key: "id",
+        },
+      },
       created_at: {
         type: Sequelize.DATE,
         allowNull: false,
