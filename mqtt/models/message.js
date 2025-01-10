@@ -4,19 +4,20 @@ const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class Message extends Model {
     static associate(models) {
+      //messages belong to a user as a sender
       Message.belongsTo(models.User, {
         as: "sender",
         foreignKey: "senderId",
       });
-
+      //messages belong to a user as a receiver
       Message.belongsTo(models.User, {
         as: "receiver",
         foreignKey: "receiverId",
       });
-
-        Message.belongsTo(models.Group, {
-          foreignKey: "groupId",
-        });
+      // messages belong to a group
+      Message.belongsTo(models.Group, {
+        foreignKey: "groupId",
+      });
     }
   }
 

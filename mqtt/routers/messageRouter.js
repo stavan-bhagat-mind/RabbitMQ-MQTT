@@ -16,3 +16,4 @@ messageRouter.post("/group", authenticate, sendGroupMessage);
 messageRouter.get("/group/:groupId", authenticate, getGroupMessages);
 
 module.exports = messageRouter;
+
