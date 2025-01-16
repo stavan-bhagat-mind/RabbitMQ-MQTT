@@ -33,15 +33,15 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      clientId: {
+      client_id: {
         type: DataTypes.STRING,
         allowNull: true,
       },
-      isOnline: {
+      is_online: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
       },
-      lastLogin: {
+      last_login: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW,
       },

@@ -21,29 +21,39 @@ module.exports = {
         type: Sequelize.ENUM("sent", "delivered", "read"),
         defaultValue: "sent",
       },
-      senderId: {
+      sender_id: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
           model: "users",
           key: "id",
         },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
-      receiverId: {
+      receiver_id: {
         type: Sequelize.UUID,
         allowNull: true,
         references: {
           model: "users",
           key: "id",
         },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
-      groupId: {
+      group_id: {
         type: Sequelize.UUID,
         allowNull: true,
         references: {
           model: "groups",
           key: "id",
         },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
+      },
+      read_by: {
+        type: Sequelize.JSON,
+        defaultValue: [],
       },
       created_at: {
         type: Sequelize.DATE,
@@ -58,9 +68,22 @@ module.exports = {
         allowNull: true,
       },
     });
+
+    // Adding indexes
+    await queryInterface.addIndex("messages", ["sender_id"]);
+    await queryInterface.addIndex("messages", ["receiver_id"], {
+      where: {
+        type: "private",
+      },
+    });
+    await queryInterface.addIndex("messages", ["group_id"], {
+      where: {
+        type: "group",
+      },
+    });
   },
 
-  down: async (queryInterface) => {
+  down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable("messages");
   },
 };

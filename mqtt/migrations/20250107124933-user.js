@@ -10,27 +10,27 @@ module.exports = {
       },
       username: {
         type: Sequelize.STRING,
-        allowNull: false,
         unique: true,
+        allowNull: false,
       },
       email: {
         type: Sequelize.STRING,
-        allowNull: false,
         unique: true,
+        allowNull: false,
       },
       password: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      clientId: {
+      client_id: {
         type: Sequelize.STRING,
         allowNull: true,
       },
-      isOnline: {
+      is_online: {
         type: Sequelize.BOOLEAN,
         defaultValue: false,
       },
-      lastLogin: {
+      last_login: {
         type: Sequelize.DATE,
         defaultValue: Sequelize.NOW,
       },
@@ -47,9 +47,13 @@ module.exports = {
         allowNull: true,
       },
     });
+
+    await queryInterface.addIndex("users", ["username", "email"], {
+      unique: true,
+    });
   },
 
-  down: async (queryInterface) => {
+  down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable("users");
   },
 };

@@ -11,19 +11,22 @@ module.exports = {
       name: {
         type: Sequelize.STRING,
         allowNull: false,
-        validate: {
-          len: [3, 100],
-        },
       },
       description: {
         type: Sequelize.TEXT,
         allowNull: true,
       },
-      creatorId: {
+      creator_id: {
         type: Sequelize.UUID,
         allowNull: false,
+        references: {
+          model: "users",
+          key: "id",
+        },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
-      isPrivate: {
+      is_private: {
         type: Sequelize.BOOLEAN,
         defaultValue: false,
       },
