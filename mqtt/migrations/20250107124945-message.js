@@ -9,17 +9,8 @@ module.exports = {
         primaryKey: true,
       },
       content: {
-        type: Sequelize.TEXT,
+        type: Sequelize.TEXT("long"),
         allowNull: false,
-      },
-      type: {
-        type: Sequelize.ENUM("private", "group"),
-        allowNull: false,
-        defaultValue: "private",
-      },
-      status: {
-        type: Sequelize.ENUM("sent", "delivered", "read"),
-        defaultValue: "sent",
       },
       sender_id: {
         type: Sequelize.UUID,
@@ -31,29 +22,17 @@ module.exports = {
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
-      receiver_id: {
+      messageable_id: {
         type: Sequelize.UUID,
-        allowNull: true,
-        references: {
-          model: "users",
-          key: "id",
-        },
-        onUpdate: "CASCADE",
-        onDelete: "CASCADE",
+        allowNull: false,
       },
-      group_id: {
-        type: Sequelize.UUID,
-        allowNull: true,
-        references: {
-          model: "groups",
-          key: "id",
-        },
-        onUpdate: "CASCADE",
-        onDelete: "CASCADE",
+      messageable_type: {
+        type: Sequelize.ENUM("User", "Group"),
+        allowNull: false,
       },
-      read_by: {
-        type: Sequelize.JSON,
-        defaultValue: [],
+      status: {
+        type: Sequelize.ENUM("sent", "delivered", "read"),
+        defaultValue: "sent",
       },
       created_at: {
         type: Sequelize.DATE,
@@ -69,18 +48,12 @@ module.exports = {
       },
     });
 
-    // Adding indexes
+    // Add indexes for better query performance
     await queryInterface.addIndex("messages", ["sender_id"]);
-    await queryInterface.addIndex("messages", ["receiver_id"], {
-      where: {
-        type: "private",
-      },
-    });
-    await queryInterface.addIndex("messages", ["group_id"], {
-      where: {
-        type: "group",
-      },
-    });
+    await queryInterface.addIndex("messages", [
+      "messageable_id",
+      "messageable_type",
+    ]);
   },
 
   down: async (queryInterface, Sequelize) => {

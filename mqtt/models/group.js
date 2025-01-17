@@ -1,14 +1,31 @@
-// models/group.js
 "use strict";
 const { Model } = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
   class Group extends Model {
     static associate(models) {
+      // Group belongs to many users through group_members
       Group.belongsToMany(models.User, {
         through: models.GroupMember,
-        foreignKey: "groupId",
-        otherKey: "userId",
+        foreignKey: "group_id",
+        otherKey: "user_id",
+        as: "members",
+      });
+
+      // Group belongs to creator
+      Group.belongsTo(models.User, {
+        foreignKey: "creator_id",
+        as: "creator",
+      });
+
+      // Group can receive messages (polymorphic)
+      Group.hasMany(models.Message, {
+        foreignKey: "messageable_id",
+        constraints: false,
+        scope: {
+          messageable_type: "Group",
+        },
+        as: "messages",
       });
     }
   }
@@ -31,18 +48,21 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: true,
       },
-      creatorId: {
+      creator_id: {
         type: DataTypes.UUID,
         allowNull: false,
+        references: {
+          model: "users",
+          key: "id",
+        },
       },
-      isPrivate: {
+      is_private: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
       },
     },
     {
       sequelize,
-    //   underscored: true,
       timestamps: true,
       paranoid: true,
       deletedAt: "deleted_at",
@@ -55,3 +75,4 @@ module.exports = (sequelize, DataTypes) => {
 
   return Group;
 };
+  

@@ -1,4 +1,3 @@
-// models/groupMember.js
 "use strict";
 const { Model } = require("sequelize");
 
@@ -7,11 +6,12 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // GroupMember belongs to Group
       GroupMember.belongsTo(models.Group, {
-        foreignKey: "groupId",
+        foreignKey: "group_id",
       });
+
       // GroupMember belongs to User
       GroupMember.belongsTo(models.User, {
-        foreignKey: "userId",
+        foreignKey: "user_id",
       });
     }
   }
@@ -23,13 +23,21 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
       },
-      groupId: {
+      group_id: {
         type: DataTypes.UUID,
         allowNull: false,
+        references: {
+          model: "groups",
+          key: "id",
+        },
       },
-      userId: {
+      user_id: {
         type: DataTypes.UUID,
         allowNull: false,
+        references: {
+          model: "users",
+          key: "id",
+        },
       },
       role: {
         type: DataTypes.ENUM("admin", "member"),
@@ -38,14 +46,20 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       sequelize,
-    //   underscored: true,
       timestamps: true,
       createdAt: "created_at",
       updatedAt: "updated_at",
       modelName: "GroupMember",
       tableName: "group_members",
+      indexes: [
+        {
+          unique: true,
+          fields: ["group_id", "user_id"],
+        },
+      ],
     }
   );
 
   return GroupMember;
 };
+  

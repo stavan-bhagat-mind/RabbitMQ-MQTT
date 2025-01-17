@@ -121,26 +121,61 @@
 
 "use strict";
 const { Model } = require("sequelize");
+var CryptoJS = require("crypto-js");
 
 module.exports = (sequelize, DataTypes) => {
   class Message extends Model {
     static associate(models) {
-      // Messages belong to a user as a sender
+      // Message belongs to sender
       Message.belongsTo(models.User, {
-        as: "sender",
         foreignKey: "sender_id",
+        as: "sender",
       });
 
-      // For direct messages only
+      // Polymorphic associations
       Message.belongsTo(models.User, {
-        as: "receiver",
-        foreignKey: "receiver_id",
+        foreignKey: "messageable_id",
+        constraints: false,
+        scope: {
+          messageable_type: "User",
+        },
+        as: "recipientUser",
       });
 
-      // For group messages
       Message.belongsTo(models.Group, {
-        foreignKey: "group_id",
+        foreignKey: "messageable_id",
+        constraints: false,
+        scope: {
+          messageable_type: "Group",
+        },
+        as: "recipientGroup",
       });
+    }
+
+    // Simple decrypt method
+    static decrypt(encryptedText, key) {
+      try {
+        if (!encryptedText || !encryptedText.includes(":")) return "";
+
+        const [salt, encrypted] = encryptedText.split(":");
+        const decrypted = CryptoJS.AES.decrypt(encrypted, key);
+        return decrypted.toString(CryptoJS.enc.Utf8);
+      } catch (error) {
+        console.error("Decryption error:", error);
+        return "";
+      }
+    }
+
+    // Simple encrypt method
+    static encrypt(text, key) {
+      try {
+        const salt = CryptoJS.lib.WordArray.random(128 / 8);
+        const encrypted = CryptoJS.AES.encrypt(text, key);
+        return `${salt}:${encrypted}`;
+      } catch (error) {
+        console.error("Encryption error:", error);
+        return text;
+      }
     }
   }
 
@@ -154,37 +189,35 @@ module.exports = (sequelize, DataTypes) => {
       content: {
         type: DataTypes.TEXT("long"),
         allowNull: false,
-      },
-      type: {
-        type: DataTypes.ENUM("private", "group"),
-        allowNull: false,
-        defaultValue: "private",
-        validate: {
-          customValidator(value) {
-            if (value === "private" && !this.receiver_id) {
-              throw new Error("receiverId is required for private messages");
-            }
-            if (value === "group" && !this.group_id) {
-              throw new Error("groupId is required for group messages");
-            }
-          },
+        get() {
+          const encrypted = this.getDataValue("content");
+          const key = process.env.ENCRYPTION_KEY;
+          return Message.decrypt(encrypted, key);
         },
-      },
-      status: {
-        type: DataTypes.ENUM("sent", "delivered", "read"),
-        defaultValue: "sent",
+        set(value) {
+          const key = process.env.ENCRYPTION_KEY;
+          this.setDataValue("content", Message.encrypt(value, key));
+        },
       },
       sender_id: {
         type: DataTypes.UUID,
         allowNull: false,
+        references: {
+          model: "users",
+          key: "id",
+        },
       },
-      receiver_id: {
+      messageable_id: {
         type: DataTypes.UUID,
-        allowNull: true,
+        allowNull: false,
       },
-      group_id: {
-        type: DataTypes.UUID,
-        allowNull: true,
+      messageable_type: {
+        type: DataTypes.ENUM("User", "Group"),
+        allowNull: false,
+      },
+      status: {
+        type: DataTypes.ENUM("sent", "delivered", "read"),
+        defaultValue: "sent",
       },
     },
     {
@@ -201,16 +234,7 @@ module.exports = (sequelize, DataTypes) => {
           fields: ["sender_id"],
         },
         {
-          fields: ["receiver_id"],
-          where: {
-            type: "private",
-          },
-        },
-        {
-          fields: ["group_id"],
-          where: {
-            type: "group",
-          },
+          fields: ["messageable_id", "messageable_type"],
         },
       ],
     }

@@ -42,7 +42,7 @@ module.exports = {
       },
     });
 
-    // Add composite unique index
+    // Add unique constraint to prevent duplicate memberships
     await queryInterface.addIndex("group_members", ["group_id", "user_id"], {
       unique: true,
     });

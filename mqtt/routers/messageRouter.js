@@ -10,10 +10,9 @@ const {
 const authenticate = require("../middleware/authenticate");
 
 messageRouter.post("/private", authenticate, sendPrivateMessage);
-messageRouter.get("/private/:userId", authenticate, getPrivateMessages);
+messageRouter.get("/private/:recipient_id", authenticate, getPrivateMessages);
 messageRouter.patch("/read/:messageId", authenticate, markMessageAsRead);
 messageRouter.post("/group", authenticate, sendGroupMessage);
 messageRouter.get("/group/:groupId", authenticate, getGroupMessages);
 
 module.exports = messageRouter;
-

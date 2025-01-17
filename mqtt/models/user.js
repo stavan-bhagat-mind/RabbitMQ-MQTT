@@ -3,7 +3,37 @@ const { Model } = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
-    static associate(models) {}
+    static associate(models) {
+      // User can send many messages
+      User.hasMany(models.Message, {
+        foreignKey: "sender_id",
+        as: "sentMessages",
+      });
+
+      // User can receive messages (polymorphic)
+      User.hasMany(models.Message, {
+        foreignKey: "messageable_id",
+        constraints: false,
+        scope: {
+          messageable_type: "User",
+        },
+        as: "receivedMessages",
+      });
+
+      // User belongs to many groups through group_members
+      User.belongsToMany(models.Group, {
+        through: models.GroupMember,
+        foreignKey: "user_id",
+        otherKey: "group_id",
+        as: "groups",
+      });
+
+      // User can create many groups
+      User.hasMany(models.Group, {
+        foreignKey: "creator_id",
+        as: "createdGroups",
+      });
+    }
   }
 
   User.init(
@@ -15,16 +45,16 @@ module.exports = (sequelize, DataTypes) => {
       },
       username: {
         type: DataTypes.STRING,
-        unique: true,
         allowNull: false,
+        unique: true,
         validate: {
           len: [3, 50],
         },
       },
       email: {
         type: DataTypes.STRING,
-        unique: true,
         allowNull: false,
+        unique: true,
         validate: {
           isEmail: true,
         },
@@ -48,7 +78,6 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       sequelize,
-      // underscored: true,
       timestamps: true,
       paranoid: true,
       deletedAt: "deleted_at",
@@ -67,3 +96,4 @@ module.exports = (sequelize, DataTypes) => {
 
   return User;
 };
+  
