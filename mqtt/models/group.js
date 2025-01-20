@@ -12,7 +12,6 @@ module.exports = (sequelize, DataTypes) => {
         as: "members",
       });
 
-      // Group belongs to creator
       Group.belongsTo(models.User, {
         foreignKey: "creator_id",
         as: "creator",

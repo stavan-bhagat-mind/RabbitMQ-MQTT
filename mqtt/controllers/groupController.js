@@ -1,234 +1,5 @@
-// const { Models } = require("../models");
-// const mqttService = require("../utils/mqttService");
-
-// async function createGroup(req, res) {
-//   try {
-//     const { name, isPrivate } = req.body;
-//     const creatorId = req.userId;
-
-//     // Publish the group creation event via MQTT
-//     mqttService.publish("group/create", {
-//       name,
-//       creatorId,
-//       isPrivate,
-//     });
-
-//     res.status(201).json({
-//       success: true,
-//       message: "Group queued for creation",
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       success: false,
-//       message: error.message,
-//     });
-//   }
-// }
-
-// // Get Group Details
-// async function getGroup(req, res) {
-//   try {
-//     const { id } = req.params;
-
-//     const group = await Models.Group.findByPk(id, {
-//       include: [
-//         {
-//           model: Models.User,
-//           through: {
-//             attributes: ["role"],
-//           },
-//         },
-//       ],
-//     });
-
-//     if (!group) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "Group not found",
-//       });
-//     }
-
-//     res.json({
-//       success: true,
-//       group,
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       success: false,
-//       message: error.message,
-//     });
-//   }
-// }
-
-// async function addUserToGroup(req, res) {
-//   try {
-//     const { groupId, userId } = req.body;
-
-//     const group = await Models.Group.findByPk(groupId);
-//     if (!group) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "Group not found",
-//       });
-//     }
-
-//     await Models.GroupMember.create({
-//       groupId,
-//       userId,
-//       role: "member",
-//     });
-
-//     res.json({
-//       success: true,
-//       message: "User  added to group successfully",
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       success: false,
-//       message: error.message,
-//     });
-//   }
-// }
-
-// // Remove User from Group
-// async function removeUserFromGroup(req, res) {
-//   try {
-//     const { groupId, userId } = req.body;
-
-//     const group = await Models.Group.findByPk(groupId);
-//     if (!group) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "Group not found",
-//       });
-//     }
-
-//     await Models.GroupMember.destroy({
-//       where: {
-//         groupId,
-//         userId,
-//       },
-//     });
-
-//     res.json({
-//       success: true,
-//       message: "User  removed from group successfully",
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       success: false,
-//       message: error.message,
-//     });
-//   }
-// }
-
-// async function getMembersFromGroup(req, res) {
-//   try {
-//     const { groupId } = req.params;
-//     const creatorId = req.userId;
-//     const group = await Models.Group.findByPk(groupId);
-//     if (!group) {
-//       return res.status(404).json({
-//         success: false,
-//         message: "Group not found",
-//       });
-//     }
-
-//     const data = await Models.GroupMember.findAll({
-//       where: {
-//         groupId,
-//       },
-//       include: [
-//         {
-//           model: Models.User,
-//           attributes: ["username"],
-//         },
-//       ],
-//       raw: true,
-//     });
-
-//     res.json({
-//       success: true,
-//       data,
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       success: false,
-//       message: error.message,
-//     });
-//   }
-// }
-
-// module.exports = {
-//   createGroup,
-//   getGroup,
-//   addUserToGroup,
-//   removeUserFromGroup,
-//   getMembersFromGroup,
-// };
 const { Models } = require("../models");
 const mqttService = require("../utils/mqttService");
-const { Op } = require("sequelize");
-
-// async function createGroup(req, res) {
-//   try {
-//     const { name, description, isPrivate = false } = req.body;
-//     const creatorId = req.userId;
-
-//     // Validate group name
-//     if (!name?.trim() || name.length < 3 || name.length > 100) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Group name must be between 3 and 100 characters",
-//       });
-//     }
-
-//     // Create group with transaction
-//     const group = await Models.sequelize.transaction(async (t) => {
-//       const newGroup = await Models.Group.create(
-//         {
-//           name: name.trim(),
-//           description: description?.trim(),
-//           creatorId,
-//           isPrivate,
-//         },
-//         { transaction: t }
-//       );
-
-//       // Add creator as admin
-//       await Models.GroupMember.create(
-//         {
-//           groupId: newGroup.id,
-//           userId: creatorId,
-//           role: "admin",
-//         },
-//         { transaction: t }
-//       );
-
-//       return newGroup;
-//     });
-
-//     // Publish group creation event
-//     mqttService.publish("group/create", {
-//       groupId: group.id,
-//       name: group.name,
-//       creatorId,
-//       isPrivate,
-//       timestamp: new Date(),
-//     });
-
-//     res.status(201).json({
-//       success: true,
-//       group,
-//     });
-//   } catch (error) {
-//     console.error("Create group error:", error);
-//     res.status(500).json({
-//       success: false,
-//       message: "An error occurred while creating the group",
-//     });
-//   }
-// }
 
 async function createGroup(req, res) {
   try {
@@ -254,7 +25,6 @@ async function createGroup(req, res) {
   }
 }
 
-// // Get Group Details
 async function getGroup(req, res) {
   try {
     const { id } = req.params;
@@ -265,9 +35,9 @@ async function getGroup(req, res) {
           model: Models.User,
           as: "members",
           attributes: ["id", "username", "email"],
-            through: {
-              attributes: ["role"],
-            },
+          through: {
+            attributes: ["role"],
+          },
         },
       ],
     });
@@ -442,12 +212,12 @@ async function removeUserFromGroup(req, res) {
 
 async function getMembersFromGroup(req, res) {
   try {
-    const { groupId } = req.params;
-    const userId = req.userId;
+    const { group_id } = req.params;
+    const user_id = req.userId;
 
     // Check if group exists and user is a member
     const membership = await Models.GroupMember.findOne({
-      where: { groupId, userId },
+      where: { group_id, user_id },
     });
 
     if (!membership) {
@@ -458,7 +228,7 @@ async function getMembersFromGroup(req, res) {
     }
 
     const members = await Models.GroupMember.findAll({
-      where: { groupId },
+      where: { group_id },
       include: [
         {
           model: Models.User,
@@ -476,8 +246,8 @@ async function getMembersFromGroup(req, res) {
       members: members.map((member) => ({
         id: member.User.id,
         username: member.User.username,
-        isOnline: member.User.isOnline,
-        lastLogin: member.User.lastLogin,
+        isOnline: member.User.is_online,
+        lastLogin: member.User.last_login,
         role: member.role,
       })),
     });
@@ -492,7 +262,7 @@ async function getMembersFromGroup(req, res) {
 
 async function updateGroupRole(req, res) {
   try {
-    const { groupId, userId, newRole } = req.body;
+    const { group_id, user_id, newRole } = req.body;
     const requesterId = req.userId;
 
     if (!["admin", "member"].includes(newRole)) {
@@ -504,7 +274,7 @@ async function updateGroupRole(req, res) {
 
     // Check if requester is admin
     const requesterMembership = await Models.GroupMember.findOne({
-      where: { groupId, userId: requesterId },
+      where: { group_id, user_id: requesterId },
     });
 
     if (!requesterMembership || requesterMembership.role !== "admin") {
@@ -517,12 +287,12 @@ async function updateGroupRole(req, res) {
     // Don't allow changing the last admin's role
     if (newRole === "member") {
       const adminCount = await Models.GroupMember.count({
-        where: { groupId, role: "admin" },
+        where: { group_id, role: "admin" },
       });
 
       if (adminCount === 1) {
         const memberToChange = await Models.GroupMember.findOne({
-          where: { groupId, userId },
+          where: { group_id, user_id },
         });
 
         if (memberToChange?.role === "admin") {
@@ -537,7 +307,7 @@ async function updateGroupRole(req, res) {
     // Update role
     const [updated] = await Models.GroupMember.update(
       { role: newRole },
-      { where: { groupId, userId } }
+      { where: { group_id, user_id } }
     );
 
     if (!updated) {
@@ -548,12 +318,12 @@ async function updateGroupRole(req, res) {
     }
 
     // Publish role update event
-    mqttService.publish("group/member/role-updated", {
-      groupId,
-      userId,
-      newRole,
-      timestamp: new Date(),
-    });
+    // mqttService.publish("group/member/role-updated", {
+    //   group_id,
+    //   user_id,
+    //   newRole,
+    //   timestamp: new Date(),
+    // });
 
     res.json({
       success: true,

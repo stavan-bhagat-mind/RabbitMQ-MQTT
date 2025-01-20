@@ -1,18 +1,14 @@
 const messageRouter = require("express").Router();
 const {
-  sendPrivateMessage,
-  getPrivateMessages,
-  markMessageAsRead,
-  sendGroupMessage,
-  getGroupMessages,
+  sendMessage,
+  getMessages,
+  markAsRead,
 } = require("../controllers/messageController");
 
 const authenticate = require("../middleware/authenticate");
 
-messageRouter.post("/private", authenticate, sendPrivateMessage);
-messageRouter.get("/private/:recipient_id", authenticate, getPrivateMessages);
-messageRouter.patch("/read/:messageId", authenticate, markMessageAsRead);
-messageRouter.post("/group", authenticate, sendGroupMessage);
-messageRouter.get("/group/:groupId", authenticate, getGroupMessages);
+messageRouter.post("/private", authenticate, sendMessage);
+messageRouter.get("/private", authenticate, getMessages);
+messageRouter.patch("/read/:message_id", authenticate, markAsRead);
 
 module.exports = messageRouter;

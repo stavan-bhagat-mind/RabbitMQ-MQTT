@@ -4,7 +4,6 @@ const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
-      // User can send many messages
       User.hasMany(models.Message, {
         foreignKey: "sender_id",
         as: "sentMessages",
@@ -20,7 +19,6 @@ module.exports = (sequelize, DataTypes) => {
         as: "receivedMessages",
       });
 
-      // User belongs to many groups through group_members
       User.belongsToMany(models.Group, {
         through: models.GroupMember,
         foreignKey: "user_id",
@@ -28,7 +26,6 @@ module.exports = (sequelize, DataTypes) => {
         as: "groups",
       });
 
-      // User can create many groups
       User.hasMany(models.Group, {
         foreignKey: "creator_id",
         as: "createdGroups",
